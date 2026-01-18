@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "769756077959",
+    "project_id": "ai-job-finder-80f79",
+    "storage_bucket": "ai-job-finder-80f79.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:769756077959:android:f842d9431926d1173c3d22",
+        "android_client_info": {
+          "package_name": "com.jgene.aijobfinder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "769756077959-f0cm2d1ke69773bjah8s0e0nm7l2q4va.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jgene.aijobfinder",
+            "certificate_hash": "b074f3fec1816f60d9ba75fbd9715d98c3ec8f14"
+          }
+        },
+        {
+          "client_id": "769756077959-77kvth6t5v07td7ruls4hhsf3sdb4d1f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZe6TTSsRP4UFbON8PMXFDu_wCqzUzVpQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "769756077959-77kvth6t5v07td7ruls4hhsf3sdb4d1f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
