@@ -1,44 +1,24 @@
 package com.jgene.aijobfinder.feature.home
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.jgene.aijobfinder.data.repository.JobSearchRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(
+    private val repository: JobSearchRepository
+) : ViewModel() {
 
-    private val _uiState = mutableStateOf(HomeUiState())
-    val uiState: State<HomeUiState> = _uiState
-
-    private val allJobs = listOf(
-        Job("Android Developer", "Google", "Bangalore", "Remote"),
-        Job("Backend Developer", "Amazon", "Chennai", "On-site"),
-        Job("AI Engineer", "OpenAI", "Pune", "Hybrid"),
-        Job("Frontend Developer", "Flipkart", "Bangalore", "Remote")
-    )
+    private val _jobs = MutableStateFlow<List<Job>>(emptyList())
+    val jobs: StateFlow<List<Job>> = _jobs
 
     init {
-        // initial recent jobs
-        _uiState.value = _uiState.value.copy(jobs = allJobs)
-    }
-
-    fun openBottomSheet() {
-        _uiState.value = _uiState.value.copy(isBottomSheetOpen = true)
-    }
-
-    fun closeBottomSheet() {
-        _uiState.value = _uiState.value.copy(isBottomSheetOpen = false)
-    }
-
-    fun applyFilters(filter: JobFilter) {
-        val filtered = allJobs.filter { job ->
-            job.title.contains(filter.role, ignoreCase = true) &&
-                    (filter.locations.isEmpty() || filter.locations.contains(job.location)) &&
-                    filter.jobTypes.contains(job.type)
+        viewModelScope.launch {
+            repository.listenJobs().collect {
+                _jobs.value = it
+            }
         }
-
-        _uiState.value = _uiState.value.copy(
-            jobs = filtered,
-            isBottomSheetOpen = false
-        )
     }
 }

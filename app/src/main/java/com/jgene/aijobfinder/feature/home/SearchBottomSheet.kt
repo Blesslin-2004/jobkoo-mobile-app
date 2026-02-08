@@ -1,124 +1,104 @@
 package com.jgene.aijobfinder.feature.home
 
-import android.net.Uri
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.jgene.aijobfinder.feature.home.components.CityChips
-import com.jgene.aijobfinder.feature.home.components.CityPickerDialog
-import com.jgene.aijobfinder.feature.home.components.JobRoleDropdown
-import com.jgene.aijobfinder.feature.home.components.JobTypeRadioGroup
-import com.jgene.aijobfinder.feature.home.components.ResumePicker
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.jgene.aijobfinder.JobKooApp
+import com.jgene.aijobfinder.di.JobViewModelFactory
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBottomSheet(
-    onApply: (JobFilter) -> Unit,
-    onClose: () -> Unit
+    onDismiss: () -> Unit
 ) {
-    // ---- UI States ----
-    var selectedRole by remember { mutableStateOf("") }
-    val selectedCities = remember { mutableStateListOf<String>() }
-    var selectedJobType by remember { mutableStateOf("Remote") }
-    var resumeUri by remember { mutableStateOf<Uri?>(null) }
-    var showCityDialog by remember { mutableStateOf(false) }
+    // ✅ Get AppContainer safely
+    val app = LocalContext.current.applicationContext as JobKooApp
+    val factory = remember {
+        JobViewModelFactory(app.container.jobSearchRepository)
+    }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
+    // ✅ Correct ViewModel creation
+    val searchViewModel: SearchViewModel =
+        viewModel(factory = factory)
 
-        // -------- Looking for (searchable dropdown) --------
-        JobRoleDropdown(
-            selectedRole = selectedRole,
-            onRoleSelected = { selectedRole = it }
-        )
+    val uiState by searchViewModel.uiState.collectAsState()
 
-        Spacer(modifier = Modifier.height(16.dp))
+    var role by remember { mutableStateOf("Android Developer") }
+    var location by remember { mutableStateOf("chennai") }
+    var jobType by remember { mutableStateOf("Remote") }
 
-        // -------- Job location --------
-        Text(
-            text = "Job location",
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        CityChips(
-            cities = selectedCities,
-            onRemove = { selectedCities.remove(it) }
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(
-            onClick = { showCityDialog = true },
-            modifier = Modifier.fillMaxWidth()
+    Box {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
-            Text("Add city")
-        }
 
-        if (showCityDialog) {
-            CityPickerDialog(
-                onCitySelected = { city ->
-                    if (!selectedCities.contains(city)) {
-                        selectedCities.add(city)
-                    }
-                },
-                onDismiss = { showCityDialog = false }
+            Text(
+                text = "Looking for",
+                style = MaterialTheme.typography.titleLarge
             )
+
+            Spacer(Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = role,
+                onValueChange = { role = it },
+                label = { Text("Role") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = location,
+                onValueChange = { location = it },
+                label = { Text("Location") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = jobType,
+                onValueChange = { jobType = it },
+                label = { Text("Job Type") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.loading,
+                onClick = {
+                    searchViewModel.startSearch(
+                        role = role,
+                        locations = location,
+                        jobType = jobType
+                    )
+                    onDismiss()
+                }
+            ) {
+                Text("Start searching")
+            }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // -------- Job type --------
-        Text(
-            text = "Job type",
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        JobTypeRadioGroup(
-            selectedType = selectedJobType,
-            onSelected = { selectedJobType = it }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // -------- Resume upload --------
-        ResumePicker(
-            onPdfSelected = { resumeUri = it }
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // -------- Start searching --------
-        Button(
-            onClick = {
-                onApply(
-                    JobFilter(
-                        role = selectedRole,
-                        locations = selectedCities.toList(),
-                        jobTypes = listOf(selectedJobType),
-                        resumeUri = resumeUri
-                    )
-                )
-                onClose()
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(50)
-        ) {
-            Text("Start searching")
+        // ✅ PROGRESS LOADER
+        if (uiState.loading) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background.copy(alpha = 0.6f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
         }
     }
 }
